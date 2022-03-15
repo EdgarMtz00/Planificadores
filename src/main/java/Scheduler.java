@@ -12,7 +12,7 @@ public class Scheduler {
         for (ThreadWork job : jobsQueue) {
             try {
                 new Thread(job).start();
-                Thread.sleep(600);
+                Thread.sleep(400);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
