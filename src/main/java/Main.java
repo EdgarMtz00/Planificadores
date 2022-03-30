@@ -1,10 +1,12 @@
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Main {
     public static void main(String[] args) {
-        JFrame mainFrame = new JFrame("Planificador FCFS");
+        Random random = new Random();
+        JFrame mainFrame = new JFrame("Planificador Round Robin");
         mainFrame.setSize(600,600);
         mainFrame.setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
@@ -21,7 +23,7 @@ public class Main {
             c.weightx = 100;
             c.weighty = 100;
             button.addActionListener(e -> {
-                scheduler.addJob(new ThreadWork(20, progressBars.get(index - 1)));
+                new ThreadWork(random.nextInt(10, 30), progressBars.get(index - 1), scheduler);
                 JButton source = (JButton) e.getSource();
                 source.setEnabled(false);
             });
@@ -43,7 +45,7 @@ public class Main {
         c.weightx = 100;
         c.weighty = 50;
         JButton startButton = new JButton("Start");
-        startButton.addActionListener(e -> scheduler.run());
+        startButton.addActionListener(e -> scheduler.start());
         mainFrame.add(startButton, c);
         mainFrame.setVisible(true);
     }

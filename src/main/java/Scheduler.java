@@ -1,20 +1,46 @@
 import java.util.ArrayDeque;
-import java.util.Queue;
+import java.util.ArrayList;
+import java.util.Iterator;
 
-public class Scheduler {
-    private final ArrayDeque<ThreadWork> jobsQueue = new ArrayDeque<>();
+public class Scheduler extends Thread {
+    private final ArrayList<ThreadWork> jobsQueue = new ArrayList<>();
 
-    public void addJob(ThreadWork job) {
+    public synchronized void addJob(ThreadWork job) {
         jobsQueue.add(job);
     }
 
-    public void run() {
-        for (ThreadWork job : jobsQueue) {
+    public synchronized void removeJob(ThreadWork t) {
+        jobsQueue.remove(t);
+    }
+
+    public void endSlice(ThreadWork t) {
+        synchronized(t) {
+            synchronized (this) {
+                notify();
+            }
             try {
-                new Thread(job).start();
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                t.wait();
+            } catch (Exception e) {
+                System.out.println("Unexpected interrupt in endSlice " + e);
+            }
+        }
+    }
+
+    public synchronized void run() {
+        int count = 0;
+        while (jobsQueue.size() > 0) {
+            if(count >= jobsQueue.size()){
+                count = 0;
+            }
+            ThreadWork nextRunner = jobsQueue.get(count);
+            count++;
+            synchronized (nextRunner) {
+                nextRunner.notify();
+            }
+            try {
+                wait();
+            } catch (Exception e) {
+                System.out.println("Unexpected interrupt in run " + e);
             }
         }
     }
