@@ -1,6 +1,4 @@
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 public class Scheduler extends Thread {
     private final ArrayList<ThreadWork> jobsQueue = new ArrayList<>();
@@ -26,14 +24,15 @@ public class Scheduler extends Thread {
         }
     }
 
+
     public synchronized void run() {
-        int count = 0;
         while (jobsQueue.size() > 0) {
-            if(count >= jobsQueue.size()){
-                count = 0;
+            ThreadWork nextRunner = jobsQueue.get(0);
+            for (ThreadWork w: jobsQueue) {
+                if (w.timeLeft < nextRunner.timeLeft){
+                    nextRunner = w;
+                }
             }
-            ThreadWork nextRunner = jobsQueue.get(count);
-            count++;
             synchronized (nextRunner) {
                 nextRunner.notify();
             }
