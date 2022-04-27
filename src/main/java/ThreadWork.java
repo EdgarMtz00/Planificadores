@@ -4,22 +4,18 @@ public class ThreadWork extends Thread {
 
     private final int totalSteps;
     private final JProgressBar progressGraphic;
-    private final Scheduler scheduler;
-    private final JLabel timeLabel;
+    private final IScheduler scheduler;
     private long timeAux;
     public  double timeLeft;
-    private double waiting;
 
-    public ThreadWork(int steps, JProgressBar progressGraphic, Scheduler scheduler, JLabel timeLabel) {
+    public ThreadWork(int steps, JProgressBar progressGraphic, IScheduler scheduler) {
         totalSteps = steps;
         timeAux = System.currentTimeMillis();
         timeLeft = steps * .250;
-        waiting = 0;
         this.progressGraphic = progressGraphic;
         this.scheduler = scheduler;
-        this.timeLabel = timeLabel;
 
-        updateLabel(0,0,0);
+        scheduler.updateLabel(0, 1);
         synchronized (this) {
             start();
             try {
@@ -40,11 +36,6 @@ public class ThreadWork extends Thread {
         }
     }
 
-    private void updateLabel(double total, double working, double waiting) {
-        String timeText = "Tiempo Total: %.2f s, Teimpo de Ejecucion: %.2f s, Tiempo Esperando: %.2f s, Tiempo Restante: %.2f s";
-        timeLabel.setText(String.format(timeText, total, working, waiting, timeLeft));
-    }
-
     private void removeFromReadyQueue() {
         scheduler.removeJob(this);
         scheduler.endSlice(this); // want something else to run!
@@ -55,14 +46,11 @@ public class ThreadWork extends Thread {
     public void run() {
         addToReadyQueue();
         double step = 0;
-        double total = 0;
         double working = 0;
         while (step != 100) {
-            waiting += (double)(System.currentTimeMillis() - timeAux) / 1000;
-            total += (double) (System.currentTimeMillis() - timeAux) / 1000;
             timeAux = System.currentTimeMillis();
-            updateLabel(total, working, waiting);
-            step = progressGraphic.getValue() + progressGraphic.getMaximum() / totalSteps;
+            scheduler.updateLabel(working, 0);
+            step += (double) progressGraphic.getMaximum() / totalSteps;
             if (step > 100) {
                 step = 100;
             }
@@ -73,15 +61,14 @@ public class ThreadWork extends Thread {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            working += (double) (System.currentTimeMillis() - timeAux) / 1000;
-            total += (double) (System.currentTimeMillis() - timeAux) / 1000;
+            working = (double) (System.currentTimeMillis() - timeAux) / 1000;
             timeAux = System.currentTimeMillis();
-            updateLabel(total, working, waiting);
-            timeLeft -= .222;
+
+            timeLeft -= working;
             scheduler.endSlice(this);
         }
         timeLeft = 0;
-        updateLabel(total, working, waiting);
+        scheduler.updateLabel(working, -1);
         removeFromReadyQueue();
     }
 }
