@@ -78,7 +78,6 @@ public class ThreadWork extends Thread {
             timeAux = System.currentTimeMillis();
             updateLabel(total, working, waiting);
             timeLeft -= .222;
-            scheduler.endSlice(this);
         }
         timeLeft = 0;
         updateLabel(total, working, waiting);
